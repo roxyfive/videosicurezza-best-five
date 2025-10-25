@@ -1,8 +1,345 @@
-videosicurezza-demo-full/
- ├─ index.html        (pagina base pronta)
- ├─ style.css         (stile base)
- ├─ script.js         (script base)
- ├─ achievements.js   (placeholder)
- ├─ previewCanvas.js  (placeholder)
- ├─ images/           (cartella vuota)
- └─ sounds/           (cartella vuota)
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VideoSicurezza Shop</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>VideoSicurezza Shop</h1>
+  <div class="cart" id="cartIcon">🛒<span>0</span></div>
+  <div class="mini-cart" id="miniCart">
+    <h4>Carrello</h4>
+    <div id="cartItems"><p style="color:#ccc;">Nessun prodotto nel carrello</p></div>
+    <div id="cartTotal"></div>
+    <button class="checkout-btn" onclick="checkout()">Checkout</button>
+  </div>
+</header>
+
+<section class="products" id="productList">
+  <div class="product" data-price="89.99" data-color="#FF4C4C" data-type="HD" data-shape="circle" data-sound="sound1">
+    <img src="images/telecamera_hd.jpg" alt="Telecamera HD">
+    <h3>Telecamera HD 1080p</h3>
+    <p>Alta definizione, visione notturna e facile da installare.</p>
+    <button onclick="addToCart('Telecamera HD 1080p',89.99,this)">Aggiungi al carrello</button>
+  </div>
+  <div class="product" data-price="249.99" data-color="#FFD700" data-type="Wireless" data-shape="star" data-sound="sound2">
+    <img src="images/kit_wireless.jpg" alt="Kit Wireless">
+    <h3>Kit Wireless</h3>
+    <p>Completo di 4 telecamere e registratore, senza fili.</p>
+    <button onclick="addToCart('Kit Wireless',249.99,this)">Aggiungi al carrello</button>
+  </div>
+  <div class="product" data-price="149.99" data-color="#1E90FF" data-type="360" data-shape="triangle" data-sound="sound3">
+    <img src="images/telecamera_360.jpg" alt="Telecamera 360">
+    <h3>Telecamera 360°</h3>
+    <p>Copertura completa della stanza con rotazione automatica.</p>
+    <button onclick="addToCart('Telecamera 360°',149.99,this)">Aggiungi al carrello</button>
+  </div>
+  <div class="product" data-price="39.99" data-color="#FF69B4" data-type="Accessori" data-shape="square" data-sound="sound4">
+    <img src="images/accessori.jpg" alt="Accessori">
+    <h3>Accessori</h3>
+    <p>Cavi e alimentatori per completare il tuo sistema.</p>
+    <button onclick="addToCart('Accessori',39.99,this)">Aggiungi al carrello</button>
+  </div>
+</section>
+
+<div id="celebrationOverlay"></div>
+<canvas id="fireworkCanvas"></canvas>
+
+<audio id="sound1" src="sounds/sound1.mp3"></audio>
+<audio id="sound2" src="sounds/sound2.mp3"></audio>
+<audio id="sound3" src="sounds/sound3.mp3"></audio>
+<audio id="sound4" src="sounds/sound4.mp3"></audio>
+<audio id="achievementSound" src="sounds/achievement.mp3"></audio>
+
+<!-- Badge Editor -->
+<div id="badgeEditor">
+  <h3>Badge Editor Live Preview</h3>
+  <ul id="badgeList"></ul>
+  <button id="addBadge">Aggiungi Badge</button>
+  <canvas id="previewCanvas"></canvas>
+  <p id="badgeMsg"></p>
+</div>
+body{margin:0;font-family:Arial,sans-serif;background:#111;color:#fff;overflow-x:hidden;}
+header{background:#1f1f1f;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center;}
+header h1{margin:0;font-size:1.6em;}
+.cart{position:relative;cursor:pointer;font-size:1.3em;}
+.cart span{position:absolute;top:-8px;right:-8px;background:red;color:white;width:20px;height:20px;border-radius:50%;text-align:center;line-height:20px;font-size:0.8em;transition:transform 0.3s;}
+.mini-cart{position:absolute;top:45px;right:0;width:90%;max-width:300px;background:#222;border-radius:10px;display:none;flex-direction:column;z-index:10;padding:10px;}
+.mini-cart.active{display:flex;opacity:1;}
+.cart-item{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:0.85em;color:#fff;position:relative;}
+.cart-item .badge{position:absolute;top:-10px;right:-10px;background:#FFD700;color:#111;padding:2px 5px;border-radius:50%;font-size:0.7em;animation:badgePulse 1s infinite alternate;}
+@keyframes badgePulse{0%{transform:scale(1);}100%{transform:scale(1.3);}}
+.checkout-btn{padding:7px;background:#1f8efa;color:white;border:none;border-radius:5px;cursor:pointer;width:100%;transition:background 0.3s;}
+.checkout-btn:hover{background:#0066cc;}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;padding:30px 15px;}
+.product{background:#222;border-radius:10px;padding:15px;text-align:center;box-shadow:0 2px 8px rgba(255,255,255,0.1);transition:0.3s;position:relative;}
+.product:hover{transform:translateY(-3px);box-shadow:0 4px 12px rgba(255,255,255,0.2);}
+.product img{width:100%;height:160px;object-fit:cover;border-radius:10px;}
+.product h3{margin:12px 0 8px;font-size:1.1em;}
+.product p{font-size:0.85em;color:#ccc;}
+.product button{margin-top:8px;padding:8px 16px;border:none;border-radius:5px;background:#1f8efa;color:white;cursor:pointer;transition:0.3s;}
+.product button:hover{background:#0066cc;}
+.fly-img{position:fixed;width:40px;height:40px;border-radius:5px;z-index:10;pointer-events:none;transition:transform 0.6s, opacity 0.6s;}
+canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;}
+#celebrationOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;justify-content:center;align-items:center;flex-direction:column;color:white;font-size:2em;z-index:50;opacity:0;pointer-events:none;transition:opacity 0.5s;text-align:center;}
+#celebrationOverlay.active{opacity:1;pointer-events:auto;}
+#badgeEditor{position:fixed;top:10px;left:10px;background:#222;color:#fff;padding:15px;border-radius:10px;z-index:1000;width:90%;max-width:350px;max-height:90%;overflow:auto;font-size:14px;}
+#badgeEditor ul{list-style:none;padding:0;margin:0;}
+#badgeEditor canvas{width:100%;height:150px;margin-top:10px;border:1px solid #555;border-radius:5px;}
+
+<script src="achievements.js"></script>
+<script src="previewCanvas.js"></script>
+<script src="script.js"></script>
+
+</body>// --- PARTICELLE ---
+const canvas=document.getElementById('fireworkCanvas');
+const ctx=canvas.getContext('2d');
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
+let particles=[], comboQueue=[], lastAddTime=0;
+
+class Particle{
+  constructor(x,y,color,shape,speedMult=1){
+    this.x=x; this.y=y; this.color=color; this.shape=shape; 
+    this.radius=Math.random()*3+2;
+    const speed=(Math.random()*5+3)*speedMult;
+    const angle=Math.random()*2*Math.PI;
+    this.vx=Math.cos(angle)*speed;
+    this.vy=Math.sin(angle)*speed;
+    this.alpha=1; this.decay=Math.random()*0.02+0.01;
+  }
+  update(){ this.x+=this.vx; this.y+=this.vy; this.alpha-=this.decay; }
+  draw(){ 
+    ctx.globalAlpha=this.alpha; 
+    ctx.fillStyle=this.color; 
+    ctx.beginPath(); 
+    switch(this.shape){
+      case 'circle': ctx.arc(this.x,this.y,this.radius,0,2*Math.PI); ctx.fill(); break;
+      case 'square': ctx.fillRect(this.x-this.radius,this.y-this.radius,this.radius*2,this.radius*2); break;
+      case 'triangle':
+        ctx.moveTo(this.x,this.y-this.radius);
+        ctx.lineTo(this.x-this.radius,this.y+this.radius);
+        ctx.lineTo(this.x+this.radius,this.y+this.radius);
+        ctx.closePath(); ctx.fill(); break;
+      case 'star':
+        for(let i=0;i<5;i++){
+          ctx.lineTo(this.x+this.radius*Math.cos(i*4*Math.PI/5), this.y+this.radius*Math.sin(i*4*Math.PI/5));
+        }
+        ctx.closePath(); ctx.fill(); break;
+    }
+    ctx.globalAlpha=1;
+  }
+}
+
+function triggerFireworks(colors,x=null,y=null,shape='circle',speedMult=1){
+  x=x||window.innerWidth/2; y=y||100;
+  colors.forEach(color=>{
+    const count=30+Math.floor(Math.random()*20);
+    for(let i=0;i<count;i++){ particles.push(new Particle(x,y,color,shape,speedMult)); }
+  });
+}
+
+function animate(){ 
+  ctx.fillStyle='rgba(0,0,0,0.2)'; 
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  particles.forEach((p,i)=>{ p.update(); p.draw(); if(p.alpha<=0) particles.splice(i,1); });
+  requestAnimationFrame(animate);
+}
+animate();
+
+// --- CARRELLO ---
+let cartCount=0, cartTotal=0, cartItems={}, achievements={};
+const cartBadge=document.querySelector('.cart span'); 
+const miniCart=document.getElementById('miniCart');
+const cartItemsContainer=document.getElementById('cartItems'); 
+const cartTotalDisplay=document.getElementById('cartTotal');
+const overlay=document.getElementById('celebrationOverlay');
+const achievementSound=document.getElementById('achievementSound');
+
+document.getElementById('cartIcon').addEventListener('click',()=>miniCart.classList.toggle('active'));
+
+function addToCart(name,price,btn){
+  const type=btn.closest('.product').dataset.type; 
+  const color=btn.closest('.product').dataset.color||'#FFD700';
+  const shape=btn.closest('.product').dataset.shape||'circle'; 
+  const soundId=btn.closest('.product').dataset.sound;
+  if(soundId) { document.getElementById(soundId).currentTime=0; document.getElementById(soundId).play(); }
+  flyToCart(btn); triggerFireworks([color], btn.getBoundingClientRect().left+20, btn.getBoundingClientRect().top+20, shape,1);
+  cartCount++; bounceBadge(); cartBadge.textContent=cartCount;
+  const now=Date.now();
+  if(now - lastAddTime < 1000){ comboQueue.push({type,color,shape}); if(comboQueue.length>=3) triggerFullCombo(); }
+  lastAddTime=now;
+
+  if(Object.keys(cartItems).length===0){ cartItemsContainer.innerHTML=''; }
+  if(cartItems[name]){
+    cartItems[name].qty++; cartItems[name].total=(cartItems[name].qty*price).toFixed(2);
+    const itemDiv=document.getElementById(name);
+    itemDiv.querySelector('.qty').textContent=cartItems[name].qty;
+    itemDiv.querySelector('.item-total').textContent=cartItems[name].total+'€';
+  } else {
+    cartItems[name]={qty:1,price:price,total:price.toFixed(2),type:type};
+    const div=document.createElement('div'); div.className='cart-item'; div.id=name;
+    div.innerHTML=`${name} <span class="qty">1</span>x <span class="item-total">${price.toFixed(2)}€</span> <button onclick="removeFromCart('${name}')">✖</button>`;
+    cartItemsContainer.appendChild(div);
+  }
+  updateTotal(); checkAchievements(type,name,shape,color);
+}
+
+function triggerFullCombo(){
+  overlay.innerHTML=`🎆 COMBO EXPLOSION! 🎆<br>Prodotti multipli aggiunti in sequenza!`;
+  overlay.classList.add('active');
+  let interval=setInterval(()=>{
+    comboQueue.forEach(p=>{
+      triggerFireworks([p.color], Math.random()*window.innerWidth, Math.random()*window.innerHeight, p.shape,2);
+    });
+  },50);
+  achievementSound.currentTime=0; achievementSound.play();
+  setTimeout(()=>{ overlay.classList.remove('active'); comboQueue=[]; clearInterval(interval); },3500);
+}
+
+function updateTotal(){
+  cartTotal=0;
+  for(let k in cartItems) cartTotal+=parseFloat(cartItems[k].total);
+  cartTotalDisplay.textContent=`Totale: ${cartTotal.toFixed(2)}€`;
+}
+
+function removeFromCart(name){
+  cartCount-=cartItems[name].qty; bounceBadge(); cartBadge.textContent=cartCount;
+  delete cartItems[name]; document.getElementById(name).remove();
+  if(Object.keys(cartItems).length===0) cartItemsContainer.innerHTML='<p style="color:#ccc;">Nessun prodotto nel carrello</p>';
+  updateTotal();
+}
+
+function flyToCart(btn){
+  const img=btn.closest('.product').querySelector('img');
+  const flyImg=img.cloneNode(true); flyImg.className='fly-img';
+  const rect=img.getBoundingClientRect();
+  flyImg.style.top=rect.top+'px'; flyImg.style.left=rect.left+'px'; document.body.appendChild(flyImg);
+  const cartRect=document.getElementById('cartIcon').getBoundingClientRect();
+  setTimeout(()=>{
+    flyImg.style.transform=`translate(${cartRect.left-rect.left}px,${cartRect.top-rect.top}px) scale(0.1)`; 
+    flyImg.style.opacity='0.5';
+  },10);
+  setTimeout(()=>flyImg.remove(),600);
+}
+
+function bounceBadge(){ cartBadge.style.transform='scale(1.5)'; setTimeout(()=>{ cartBadge.style.transform='scale(1)'; },200); }
+
+document.addEventListener('click', e=>{ 
+  if(!miniCart.contains(e.target)&&!document.getElementById('cartIcon').contains(e.target)){
+    miniCart.classList.remove('active'); 
+  }
+});
+
+function checkout(){ 
+  if(cartCount===0) alert("Il carrello è vuoto."); 
+  else alert(`Totale ordine: ${cartTotal.toFixed(2)}€`); 
+}
+// --- BADGE CONFIG ---
+let achievementTable = [
+  { type:"HD", quantity:2, badgeText:"HD Master", color:"#FF4C4C", shape:"circle" },
+  { type:"Wireless", quantity:1, badgeText:"Wireless Pro", color:"#FFD700", shape:"star" },
+  { type:"360", quantity:1, badgeText:"360 Vision", color:"#1E90FF", shape:"triangle" },
+  { type:"Accessori", quantity:3, badgeText:"Accessory King", color:"#FF69B4", shape:"square" }
+];
+
+const badgeList = document.getElementById('badgeList');
+
+// Render lista badge nell’editor
+function renderBadgeList(){
+  badgeList.innerHTML='';
+  achievementTable.forEach((badge,index)=>{
+    const li=document.createElement('li');
+    li.style.background='#111'; li.style.marginBottom='5px'; li.style.padding='8px'; li.style.border='1px solid #555'; li.style.borderRadius='5px';
+    li.style.display='flex'; li.style.flexWrap='wrap'; li.style.alignItems='center';
+    li.dataset.index=index;
+    li.innerHTML=`
+      <input type="text" value="${badge.badgeText}" style="flex:2;margin:2px;padding:4px;" placeholder="Nome Badge" />
+      <input type="number" value="${badge.quantity}" style="flex:1;margin:2px;padding:4px;" min="1" placeholder="Qta" />
+      <input type="color" value="${badge.color}" />
+      <select style="flex:1;margin:2px;padding:4px;">
+        <option value="circle" ${badge.shape==='circle'?'selected':''}>Circle</option>
+        <option value="square" ${badge.shape==='square'?'selected':''}>Square</option>
+        <option value="triangle" ${badge.shape==='triangle'?'selected':''}>Triangle</option>
+        <option value="star" ${badge.shape==='star'?'selected':''}>Star</option>
+      </select>
+      <button style="flex:0 0 auto;margin:2px;padding:4px;background:#ff4444;border:none;color:#fff;border-radius:5px;">✖</button>
+    `;
+    li.querySelector('button').addEventListener('click',()=>{ achievementTable.splice(index,1); renderBadgeList(); });
+    li.querySelectorAll('input,select').forEach(input=>{
+      input.addEventListener('input',()=>{
+        const [textInput,qtaInput,colorInput,shapeSelect]=li.querySelectorAll('input,select');
+        achievementTable[index]={type:badge.type, badgeText:textInput.value, quantity:parseInt(qtaInput.value), color:colorInput.value, shape:shapeSelect.value};
+        triggerPreview(colorInput.value,shapeSelect.value);
+      });
+    });
+    badgeList.appendChild(li);
+  });
+}
+
+document.getElementById('addBadge').addEventListener('click',()=>{
+  achievementTable.push({type:"HD",quantity:1,badgeText:"Nuovo Badge",color:"#FFFFFF",shape:"circle"});
+  renderBadgeList();
+});
+
+renderBadgeList();
+// --- PREVIEW BADGE ---
+const previewCanvas = document.getElementById('previewCanvas');
+const previewCtx = previewCanvas.getContext('2d');
+previewCanvas.width=previewCanvas.clientWidth;
+previewCanvas.height=previewCanvas.clientHeight;
+let previewParticles=[];
+
+class PreviewParticle{
+  constructor(x,y,color,shape){
+    this.x=x; this.y=y; this.color=color; this.shape=shape; 
+    this.radius=Math.random()*5+3; 
+    const angle=Math.random()*2*Math.PI;
+    const speed=Math.random()*2+1;
+    this.vx=Math.cos(angle)*speed; this.vy=Math.sin(angle)*speed;
+    this.alpha=1; this.decay=0.02;
+  }
+  update(){ this.x+=this.vx; this.y+=this.vy; this.alpha-=this.decay; }
+  draw(){ 
+    previewCtx.globalAlpha=this.alpha; 
+    previewCtx.fillStyle=this.color; 
+    previewCtx.beginPath();
+    switch(this.shape){
+      case 'circle': previewCtx.arc(this.x,this.y,this.radius,0,2*Math.PI); previewCtx.fill(); break;
+      case 'square': previewCtx.fillRect(this.x-this.radius,this.y-this.radius,this.radius*2,this.radius*2); break;
+      case 'triangle':
+        previewCtx.moveTo(this.x,this.y-this.radius);
+        previewCtx.lineTo(this.x-this.radius,this.y+this.radius);
+        previewCtx.lineTo(this.x+this.radius,this.y+this.radius);
+        previewCtx.closePath(); previewCtx.fill(); break;
+      case 'star':
+        for(let i=0;i<5;i++){
+          previewCtx.lineTo(this.x+this.radius*Math.cos(i*4*Math.PI/5), this.y+this.radius*Math.sin(i*4*Math.PI/5));
+        }
+        previewCtx.closePath(); previewCtx.fill(); break;
+    }
+    previewCtx.globalAlpha=1;
+  }
+}
+
+function triggerPreview(color,shape){
+  const x=previewCanvas.width/2;
+  const y=previewCanvas.height/2;
+  for(let i=0;i<20;i++){ previewParticles.push(new PreviewParticle(x,y,color,shape)); }
+}
+
+function animatePreview(){
+  previewCtx.fillStyle='rgba(0,0,0,0.2)';
+  previewCtx.fillRect(0,0,previewCanvas.width,previewCanvas.height);
+  previewParticles.forEach((p,i)=>{ p.update(); p.draw(); if(p.alpha<=0) previewParticles.splice(i,1); });
+  requestAnimationFrame(animatePreview);
+}
+
+animatePreview();
+
+</html>
