@@ -1,4 +1,9 @@
-\\\<!DOCTYPE html>
+\\\<!DOCTYPE html>videosicurezza-demo (repository)
+ ├─ index.html   ✅ deve stare qui
+ ├─ style.css
+ ├─ script.js
+ └─ ...
+
 <html lang="it">
 <head>
 <meta charset="UTF-8">
