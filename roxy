@@ -1,0 +1,8 @@
+videosicurezza-demo-full/
+ ├─ index.html        (pagina base pronta)
+ ├─ style.css         (stile base)
+ ├─ script.js         (script base)
+ ├─ achievements.js   (placeholder)
+ ├─ previewCanvas.js  (placeholder)
+ ├─ images/           (cartella vuota)
+ └─ sounds/           (cartella vuota)
